@@ -88,15 +88,17 @@ class AlphaBetaPlayer(Player):
 
 
     def eval_board(self, board):
-        # Write eval function here
         # type:(board) -> (float)
+        # check if terminal state
+        if self.terminal_state(board) :
+            return self.terminal_value(board)
         value = 0
         if self.eval_type == 0:
-            print("eval_type = 0")
+            print("eval_type = 0") # Testing purposes only
             # should return number of player pieces - number of opponenets pieces
             value = board.count_score(self.symbol) - board.count_score(self.oppSym) 
         elif self.eval_type == 1:
-            print("eval_type = 1")
+            print("eval_type = 1") # Testing purposes only
             # should return number of player legal moves - number of opponents legal moves
             player_legal_moves, opp_legal_moves = 0, 0
             for c in range(0, board.get_num_cols()):
@@ -105,7 +107,7 @@ class AlphaBetaPlayer(Player):
                     if board.is_legal_move(c, r, self.oppSym) : opp_legal_moves += 1 
             value = player_legal_moves - opp_legal_moves
         elif self.eval_type == 2:
-            print("eval_type = 2")
+            print("eval_type = 2") # Testing purposes only
             # Design own heuristic
             value = 2
         return value
@@ -114,8 +116,12 @@ class AlphaBetaPlayer(Player):
     def get_successors(self, board, player_symbol):
         # Write function that takes the current state and generates all successors obtained by legal moves
         # type:(board, player_symbol) -> (list)
-        successors = []
-        return successors 
+
+        # for each valid move
+            # self.play_move(col, row, player_symbol)
+
+        successors = [] 
+        return successors # list of possible next board states
 
 
     def get_move(self, board):
