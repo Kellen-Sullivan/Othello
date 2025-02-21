@@ -6,6 +6,7 @@ class Player:
     def get_symbol(self):
         return self.symbol
     
+    # probably can delete this when we implement get_move()
     def get_move(self, board):
         raise NotImplementedError()
 
@@ -38,7 +39,7 @@ class AlphaBetaPlayer(Player):
     """
     def __init__(self, symbol, eval_type, prune, max_depth):
         Player.__init__(self, symbol)
-        self.eval_type = eval_type
+        self.eval_type = int(eval_type)
         self.prune = prune
         self.max_depth = int(max_depth) 
         self.max_depth_seen = 0
@@ -78,6 +79,8 @@ class AlphaBetaPlayer(Player):
 
 
     def alphabeta(self, board):
+        val = self.eval_board(board)
+        print(val)
         # Write minimax function here using eval_board and get_successors
         # type:(board) -> (int, int)
         col, row = 0, 0
@@ -89,10 +92,16 @@ class AlphaBetaPlayer(Player):
         # type:(board) -> (float)
         value = 0
         if self.eval_type == 0:
-            value = 0
+            print("eval_type = 0")
+            # should return number of player pieces - number of opponenets pieces
+            value = board.count_score(self.symbol) - board.count_score(self.oppSym) 
         elif self.eval_type == 1:
+            print("eval_type = 1")
+            # should return number of player legal moves - number of opponents legal moves
             value = 1
         elif self.eval_type == 2:
+            print("eval_type = 2")
+            # Design own heuristic
             value = 2
         return value
 
