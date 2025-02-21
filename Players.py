@@ -6,7 +6,7 @@ class Player:
     def get_symbol(self):
         return self.symbol
     
-    # probably can delete this when we implement get_move()
+    # probably can delete this when we implement get_move() Not sure though
     def get_move(self, board):
         raise NotImplementedError()
 
@@ -80,7 +80,10 @@ class AlphaBetaPlayer(Player):
 
     def alphabeta(self, board):
         val = self.eval_board(board)
-        print(val)
+
+        successors = []
+        successors = self.get_successors(board, self.symbol)
+
         # Write minimax function here using eval_board and get_successors
         # type:(board) -> (int, int)
         col, row = 0, 0
@@ -94,11 +97,11 @@ class AlphaBetaPlayer(Player):
             return self.terminal_value(board)
         value = 0
         if self.eval_type == 0:
-            print("eval_type = 0") # Testing purposes only
+            #print("eval_type = 0") # Testing purposes only
             # should return number of player pieces - number of opponenets pieces
             value = board.count_score(self.symbol) - board.count_score(self.oppSym) 
         elif self.eval_type == 1:
-            print("eval_type = 1") # Testing purposes only
+            #print("eval_type = 1") # Testing purposes only
             # should return number of player legal moves - number of opponents legal moves
             player_legal_moves, opp_legal_moves = 0, 0
             for c in range(0, board.get_num_cols()):
@@ -107,7 +110,7 @@ class AlphaBetaPlayer(Player):
                     if board.is_legal_move(c, r, self.oppSym) : opp_legal_moves += 1 
             value = player_legal_moves - opp_legal_moves
         elif self.eval_type == 2:
-            print("eval_type = 2") # Testing purposes only
+            #print("eval_type = 2") # Testing purposes only
             # Design own heuristic
             value = 2
         return value
@@ -116,12 +119,23 @@ class AlphaBetaPlayer(Player):
     def get_successors(self, board, player_symbol):
         # Write function that takes the current state and generates all successors obtained by legal moves
         # type:(board, player_symbol) -> (list)
-
-        # for each valid move
-            # self.play_move(col, row, player_symbol)
-
         successors = [] 
-        return successors # list of possible next board states
+        # check if no valid moves
+        if not board.has_legal_moves_remaining(player_symbol):
+            return successors 
+
+        for c in range(0, board.get_num_cols()):
+            for r in range(0, board.get_num_rows()):
+                if board.is_legal_move(c, r, player_symbol):
+                    new_board = board.cloneOBoard() # clone current board
+                    new_board.play_move(c, r, player_symbol) # sometimes there is an invalid move somehow
+                    successors.append(new_board) # play move and save board state to successors
+        
+        # for b in successors: # temp test to print all successor boards
+        #     b.display()
+        #     print(self.eval_board(b))
+    
+        return successors # list of possible next board states (empty if none)
 
 
     def get_move(self, board):
