@@ -98,7 +98,12 @@ class AlphaBetaPlayer(Player):
         elif self.eval_type == 1:
             print("eval_type = 1")
             # should return number of player legal moves - number of opponents legal moves
-            value = 1
+            player_legal_moves, opp_legal_moves = 0, 0
+            for c in range(0, board.get_num_cols()):
+                for r in range(0, board.get_num_rows()):
+                    if board.is_legal_move(c, r, self.symbol) : player_legal_moves += 1 
+                    if board.is_legal_move(c, r, self.oppSym) : opp_legal_moves += 1 
+            value = player_legal_moves - opp_legal_moves
         elif self.eval_type == 2:
             print("eval_type = 2")
             # Design own heuristic
