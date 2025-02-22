@@ -94,7 +94,7 @@ class AlphaBetaPlayer(Player):
         d -= 1 # Decrement Depth
 
         successors = self.get_successors(board, self.symbol)
-        best_move = None
+        best_move = (None, None, None)
         for s, r, c in successors: 
             val = None
             if self.terminal_state(s):
@@ -124,7 +124,7 @@ class AlphaBetaPlayer(Player):
             if self.terminal_state(s):
                 val = self.terminal_value(s)
             else:
-                val = self.max_val( s, a, b, d)
+                val, _, _ = self.max_val(s, a, b, d)
             
             # Prunes, no other branches in this min node will be checked
             if val < a: 
@@ -174,9 +174,9 @@ class AlphaBetaPlayer(Player):
         for c in range(0, board.get_num_cols()):
             for r in range(0, board.get_num_rows()):
                 if board.is_legal_move(c, r, player_symbol):
-                    new_board = board.cloneBoard() # clone current board
+                    new_board = board.cloneOBoard() # clone current board
                     new_board.play_move(c, r, player_symbol) # sometimes there is an invalid move somehow
-                    successors.append(new_board, c, r) # play move and save board state to successors
+                    successors.append((new_board, c, r)) # play move and save board state to successors
         
         # for b in successors: # temp test to print all successor boards
         #     b.display()
