@@ -78,20 +78,67 @@ class AlphaBetaPlayer(Player):
             return "X"
 
 
+    # Gets all 
     def alphabeta(self, board):
-        val = self.eval_board(board)
+        # best_move = (val, col, row)
+        best_move = self.max_val(board, float('-inf'), float('inf'), self.max_depth)
+        return best_move[1], best_move[2]
+    
 
-        successors = []
+    def max_val(self, board, a, b, d):
+        if self.terminal_state(board):
+            return self.terminal_value(board), None, None
+        if d == 0:
+            return self.eval_board(self, board), None, None
+        
+        d -= 1 # Decrement Depth
+
         successors = self.get_successors(board, self.symbol)
+        best_move = None
+        for s, r, c in successors: 
+            val = None
+            if self.terminal_state(s):
+                val = self.terminal_value(s)
+            else:
+                val = self.min_val(s, a, b, d)
+            # Chooses successor if it's score is larger than all previous successors
+            if val > a:
+                a = val
+                best_move = (r, c)
 
-        # Write minimax function here using eval_board and get_successors
-        # type:(board) -> (int, int)
-        col, row = 0, 0
-        return col, row
+        return a, best_move[0], best_move[1]
+        
+
+
+    def min_val(self, board, a, b, d):
+        if self.terminal_state(board):
+            return self.terminal_value(board)
+        if d == 0:
+            return self.eval_board( board)
+        
+        d -= 1
+
+        successors = self.get_successors(board, self.symbol)
+        for s, _, _ in successors: 
+            val = None
+            if self.terminal_state(s):
+                val = self.terminal_value(s)
+            else:
+                val = self.max_val( s, a, b, d)
+            
+            # Prunes, no other branches in this min node will be checked
+            if val < a: 
+                return val
+            
+            # Updates beta value of node if it fines a lower value move
+            if val < b: 
+                b = val
+        return b
+
 
 
     def eval_board(self, board):
-        # type:(board) -> (float)
+        # type: (board) -> (float)
         # check if terminal state
         if self.terminal_state(board) :
             return self.terminal_value(board)
@@ -127,9 +174,9 @@ class AlphaBetaPlayer(Player):
         for c in range(0, board.get_num_cols()):
             for r in range(0, board.get_num_rows()):
                 if board.is_legal_move(c, r, player_symbol):
-                    new_board = board.cloneOBoard() # clone current board
+                    new_board = board.cloneBoard() # clone current board
                     new_board.play_move(c, r, player_symbol) # sometimes there is an invalid move somehow
-                    successors.append(new_board) # play move and save board state to successors
+                    successors.append(new_board, c, r) # play move and save board state to successors
         
         # for b in successors: # temp test to print all successor boards
         #     b.display()

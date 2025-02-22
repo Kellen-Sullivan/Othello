@@ -79,7 +79,7 @@ class GameDriver:
         state = self.board.count_score(self.p1.symbol) - self.board.count_score(self.p2.symbol)
         if( state == 0):
             print("Tie game!!")
-        elif state >0:
+        elif state > 0:
             print("Player 1 Wins!")
         else:
             print("Player 2 Wins!")
