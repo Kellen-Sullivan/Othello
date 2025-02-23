@@ -80,6 +80,7 @@ class AlphaBetaPlayer(Player):
 
     # Gets all 
     def alphabeta(self, board):
+        self.eval_board(board) # TEMP PRINT STATEMENT
         # best_move = (val, col, row)
         best_move = self.max_val(board, float('-inf'), float('inf'), self.max_depth)
         return best_move[1], best_move[2]
@@ -138,7 +139,7 @@ class AlphaBetaPlayer(Player):
 
 
     def eval_board(self, board):
-        # type: (board) -> (float)
+        # (board) -> (float)
         # check if terminal state
         if self.terminal_state(board) :
             return self.terminal_value(board)
@@ -159,10 +160,152 @@ class AlphaBetaPlayer(Player):
         elif self.eval_type == 2:
             #print("eval_type = 2") # Testing purposes only
             # Design own heuristic
-            value = 2
+            """
+            Note: 'stable' pieces are pieces that can't be flipped (corners are stable)
+            Own heuristic first counts the number of 'stable' peices. Then it sums 
+            the number of stable pieces with moves and peices values (add eval of h0 and h1 with stable pieces).
+            NOTE: I THINK WE SHOULD LSO TRY THIS WITHOUT ADDING PIECES (lots of strat guides say pieces is bad indicator)
+            """
+            # get number of pieces value (h0)
+            pieces_val = board.count_score(self.symbol) - board.count_score(self.oppSym)
+            # get legal moves value (h1)
+            player_legal_moves, opp_legal_moves = 0, 0
+            for c in range(0, board.get_num_cols()):
+                for r in range(0, board.get_num_rows()):
+                    if board.is_legal_move(c, r, self.symbol) : player_legal_moves += 1 
+                    if board.is_legal_move(c, r, self.oppSym) : opp_legal_moves += 1 
+            moves_val = player_legal_moves - opp_legal_moves
+            # get stable pieces value
+            player_stable_pieces, opp_stable_pieces = 0, 0
+            for c in range(0, board.get_num_cols()):
+                for r in range(0, board.get_num_rows()):
+                    symbol = board.get_cell(c, r)
+                    if symbol == '.': # empty cell
+                        continue
+                    if symbol == self.symbol: # check if player piece is stable
+                        # check if flankable in its col
+                        flankable_above, flankable_below = False, False
+                        for rows in range(0, r): # check rows less than r
+                            if board.get_cell(c, rows) == '.' or board.get_cell(c, rows) == self.oppSym: flankable_above = True
+                        for rows in range(r, board.get_num_rows()): # check rows greater than r
+                            if board.get_cell(c, rows) == '.' or board.get_cell(c, rows) == self.oppSym: flankable_below = True
+                        if flankable_above and flankable_below: continue # peice is not stable
+                        # check if flankable in its row
+                        flankable_left, flankable_right = False, False
+                        for cols in range(0, c): # check rows less than r
+                            if board.get_cell(cols, r) == '.' or board.get_cell(cols, r) == self.oppSym: flankable_left = True
+                        for rows in range(r, board.get_num_rows()): # check rows greater than r
+                            if board.get_cell(cols, r) == '.' or board.get_cell(cols, r) == self.oppSym: flankable_right = True
+                        if flankable_left and flankable_right: continue # piece is not stable
+                        # check if flankable by its negative slope diagonal
+                        check_c,  check_r = c, r
+                        flankable_NW = False
+                        flankable_SE = False
+                        while(board.get_cell(check_c - 1, check_r - 1)):  # NOTE: get_cell returns none if not in bounds
+                            # check cells NW of cell
+                            if board.get_cell(check_c - 1, check_r - 1) == '.' or board.get_cell(check_c - 1, check_r - 1) == self.oppSym: 
+                                flankable_NW = True
+                                break
+                            check_c -= 1
+                            check_r -= 1
+                        check_c,  check_r = c, r
+                        while(board.get_cell(check_c + 1, check_r + 1)):  # NOTE: get_cell returns none if not in bounds
+                            # check cells SE of cell
+                            if board.get_cell(check_c + 1, check_r + 1) == '.' or board.get_cell(check_c + 1, check_r + 1) == self.oppSym: 
+                                flankable_SE = True
+                                break
+                            check_c += 1
+                            check_r += 1
+                        if flankable_NW and flankable_SE: continue # piece is not stable
+                        # check if flankable by its positive slope diagonal
+                        check_c,  check_r = c, r
+                        flankable_NE = False
+                        flankable_SW = False
+                        while(board.get_cell(check_c + 1, check_r - 1)):  # NOTE: get_cell returns none if not in bounds
+                            # check cells NW of cell
+                            if board.get_cell(check_c + 1, check_r - 1) == '.' or board.get_cell(check_c + 1, check_r - 1) == self.oppSym: 
+                                flankable_NE = True
+                                break
+                            check_c += 1
+                            check_r -= 1
+                        check_c,  check_r = c, r
+                        while(board.get_cell(check_c - 1, check_r + 1)):  # NOTE: get_cell returns none if not in bounds
+                            # check cells SE of cell
+                            if board.get_cell(check_c - 1, check_r + 1) == '.' or board.get_cell(check_c - 1, check_r + 1) == self.oppSym: 
+                                flankable_SW = True
+                                break
+                            check_c += 1
+                            check_r += 1
+                        if flankable_NE and flankable_SW: continue # piece is not stable
+
+                        # Not flankable by row, column, or diagonal, so the piece is stable
+                        player_stable_pieces += 1
+
+                    elif symbol == self.oppSym: # check if opponent piece is stable
+                        # check if flankable in its col
+                        flankable_above, flankable_below = False, False
+                        for rows in range(0, r): # check rows less than r
+                            if board.get_cell(c, rows) == '.' or board.get_cell(c, rows) == self.symbol: flankable_above = True
+                        for rows in range(r, board.get_num_rows()): # check rows greater than r
+                            if board.get_cell(c, rows) == '.' or board.get_cell(c, rows) == self.symbol: flankable_below = True
+                        if flankable_above and flankable_below: continue # peice is not stable
+                        # check if flankable in its row
+                        flankable_left, flankable_right = False, False
+                        for cols in range(0, c): # check rows less than r
+                            if board.get_cell(cols, r) == '.' or board.get_cell(cols, r) == self.symbol: flankable_left = True
+                        for cols in range(r, board.get_num_rows()): # check rows greater than r
+                            if board.get_cell(cols, r) == '.' or board.get_cell(cols, r) == self.symbol: flankable_right = True
+                        if flankable_left and flankable_right: continue # peice is not stable
+                         # check if flankable by its negative slope diagonal
+                        check_c,  check_r = c, r
+                        flankable_NW = False
+                        flankable_SE = False
+                        while(board.get_cell(check_c - 1, check_r - 1)):  # NOTE: get_cell returns none if not in bounds
+                            # check cells NW of cell
+                            if board.get_cell(check_c - 1, check_r - 1) == '.' or board.get_cell(check_c - 1, check_r - 1) == self.symbol: 
+                                flankable_NW = True
+                                break
+                            check_c -= 1
+                            check_r -= 1
+                        check_c,  check_r = c, r
+                        while(board.get_cell(check_c + 1, check_r + 1)):  # NOTE: get_cell returns none if not in bounds
+                            # check cells SE of cell
+                            if board.get_cell(check_c + 1, check_r + 1) == '.' or board.get_cell(check_c + 1, check_r + 1) == self.symbol: 
+                                flankable_SE = True
+                                break
+                            check_c += 1
+                            check_r += 1
+                        if flankable_NW and flankable_SE: continue # piece is not stable
+                        # check if flankable by its positive slope diagonal
+                        check_c,  check_r = c, r
+                        flankable_NE = False
+                        flankable_SW = False
+                        while(board.get_cell(check_c + 1, check_r - 1)):  # NOTE: get_cell returns none if not in bounds
+                            # check cells NW of cell
+                            if board.get_cell(check_c + 1, check_r - 1) == '.' or board.get_cell(check_c + 1, check_r - 1) == self.symbol: 
+                                flankable_NE = True
+                                break
+                            check_c += 1
+                            check_r -= 1
+                        check_c,  check_r = c, r
+                        while(board.get_cell(check_c - 1, check_r + 1)):  # NOTE: get_cell returns none if not in bounds
+                            # check cells SE of cell
+                            if board.get_cell(check_c - 1, check_r + 1) == '.' or board.get_cell(check_c - 1, check_r + 1) == self.symbol: 
+                                flankable_SW = True
+                                break
+                            check_c += 1
+                            check_r += 1
+                        if flankable_NE and flankable_SW: continue # piece is not stable
+
+                        # Not flankable by row, column or diagonal, so the piece is stable
+                        opp_stable_pieces += 1
+                          
+            stable_val = player_stable_pieces - opp_stable_pieces
+            print(stable_val) # TEMP PRINT STATEMENT
+            value = pieces_val + moves_val + stable_val
         return value
 
-
+    # TODO: Fix error where sometimes an invalid move is appended
     def get_successors(self, board, player_symbol):
         # Write function that takes the current state and generates all successors obtained by legal moves
         # type:(board, player_symbol) -> (list)
