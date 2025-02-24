@@ -83,18 +83,22 @@ class AlphaBetaPlayer(Player):
         self.eval_board(board) # TEMP PRINT STATEMENT
         # best_move = (val, col, row)
         best_move = self.max_val(board, float('-inf'), float('inf'), self.max_depth)
+        print(best_move[1], best_move[2])
         return best_move[1], best_move[2]
     
 
     def max_val(self, board, a, b, d):
         if self.terminal_state(board):
-            return self.terminal_value(board), None, None
+            return self.terminal_value(board), 0, 0
         if d == 0:
-            return self.eval_board(self, board), None, None
+            return self.eval_board(board), 0, 0
         
         d -= 1 # Decrement Depth
 
         successors = self.get_successors(board, self.symbol)
+        if len(successors) == 0:
+            return self.min_val(board, a, b, d), 0, 0
+
         best_move = (None, None, None)
         for s, r, c in successors: 
             val = None
@@ -115,11 +119,15 @@ class AlphaBetaPlayer(Player):
         if self.terminal_state(board):
             return self.terminal_value(board)
         if d == 0:
-            return self.eval_board( board)
+            return self.eval_board(board)
         
         d -= 1
 
-        successors = self.get_successors(board, self.symbol)
+        successors = self.get_successors(board, self.oppSym)
+        if len(successors) == 0:
+            ans, _, _ = self.max_val(board, a, b, d)
+            return ans
+
         for s, _, _ in successors: 
             val = None
             if self.terminal_state(s):
@@ -139,6 +147,7 @@ class AlphaBetaPlayer(Player):
 
 
     def eval_board(self, board):
+
         # (board) -> (float)
         # check if terminal state
         if self.terminal_state(board) :
