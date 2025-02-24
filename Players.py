@@ -83,7 +83,7 @@ class AlphaBetaPlayer(Player):
         self.eval_board(board) # TEMP PRINT STATEMENT
         # best_move = (val, col, row)
         best_move = self.max_val(board, float('-inf'), float('inf'), self.max_depth)
-        print(best_move[1], best_move[2])
+        #print(best_move[1], best_move[2])
         return best_move[1], best_move[2]
     
 
@@ -99,7 +99,7 @@ class AlphaBetaPlayer(Player):
         if len(successors) == 0:
             return self.min_val(board, a, b, d), 0, 0
 
-        best_move = (None, None, None)
+        best_move = (successors[0][1], successors[0][2])
         for s, r, c in successors: 
             val = None
             if self.terminal_state(s):
@@ -111,6 +111,8 @@ class AlphaBetaPlayer(Player):
                 a = val
                 best_move = (r, c)
 
+        # test print statement
+        if best_move[0] == None or best_move[1] == None: print(best_move[0], best_move[1])
         return a, best_move[0], best_move[1]
         
 
@@ -147,7 +149,6 @@ class AlphaBetaPlayer(Player):
 
 
     def eval_board(self, board):
-
         # (board) -> (float)
         # check if terminal state
         if self.terminal_state(board) :
@@ -173,7 +174,7 @@ class AlphaBetaPlayer(Player):
             Note: 'stable' pieces are pieces that can't be flipped (corners are stable)
             Own heuristic first counts the number of 'stable' peices. Then it sums 
             the number of stable pieces with moves and peices values (add eval of h0 and h1 with stable pieces).
-            NOTE: I THINK WE SHOULD LSO TRY THIS WITHOUT ADDING PIECES (lots of strat guides say pieces is bad indicator)
+            NOTE: I THINK WE SHOULD ALSO TRY THIS WITHOUT ADDING PIECES (lots of strat guides say pieces is bad indicator)
             """
             # get number of pieces value (h0)
             pieces_val = board.count_score(self.symbol) - board.count_score(self.oppSym)
@@ -198,7 +199,7 @@ class AlphaBetaPlayer(Player):
                             if board.get_cell(c, rows) == '.' or board.get_cell(c, rows) == self.oppSym: flankable_above = True
                         for rows in range(r, board.get_num_rows()): # check rows greater than r
                             if board.get_cell(c, rows) == '.' or board.get_cell(c, rows) == self.oppSym: flankable_below = True
-                        if flankable_above and flankable_below: continue # peice is not stable
+                        if flankable_above and flankable_below: continue # piece is not stable
                         # check if flankable in its row
                         flankable_left, flankable_right = False, False
                         for cols in range(0, c): # check rows less than r
@@ -310,7 +311,7 @@ class AlphaBetaPlayer(Player):
                         opp_stable_pieces += 1
                           
             stable_val = player_stable_pieces - opp_stable_pieces
-            print(stable_val) # TEMP PRINT STATEMENT
+            #print(stable_val) # TEMP PRINT STATEMENT
             value = pieces_val + moves_val + stable_val
         return value
 
@@ -322,18 +323,14 @@ class AlphaBetaPlayer(Player):
         # check if no valid moves
         if not board.has_legal_moves_remaining(player_symbol):
             return successors 
-
+        # find all valid moves and add successors to successors list
         for c in range(0, board.get_num_cols()):
             for r in range(0, board.get_num_rows()):
                 if board.is_legal_move(c, r, player_symbol):
                     new_board = board.cloneOBoard() # clone current board
                     new_board.play_move(c, r, player_symbol) # sometimes there is an invalid move somehow
                     successors.append((new_board, c, r)) # play move and save board state to successors
-        
-        # for b in successors: # temp test to print all successor boards
-        #     b.display()
-        #     print(self.eval_board(b))
-    
+                    
         return successors # list of possible next board states (empty if none)
 
 
