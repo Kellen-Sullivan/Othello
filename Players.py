@@ -49,6 +49,12 @@ class AlphaBetaPlayer(Player):
         else:
             self.oppSym = 'X'
 
+        # TEST PRINT STATEMENTS
+        print(f"symbol: {self.symbol}")
+        print(f"eval type: {self.eval_type}")
+        print(f"prune: {self.prune}")
+        print(f"max depth: {self.max_depth}")
+
 
     def terminal_state(self, board):
         # If either player can make a move, it's not a terminal state
@@ -155,11 +161,9 @@ class AlphaBetaPlayer(Player):
             return self.terminal_value(board)
         value = 0
         if self.eval_type == 0:
-            #print("eval_type = 0") # Testing purposes only
             # should return number of player pieces - number of opponenets pieces
             value = board.count_score(self.symbol) - board.count_score(self.oppSym) 
         elif self.eval_type == 1:
-            #print("eval_type = 1") # Testing purposes only
             # should return number of player legal moves - number of opponents legal moves
             player_legal_moves, opp_legal_moves = 0, 0
             for c in range(0, board.get_num_cols()):
@@ -168,24 +172,11 @@ class AlphaBetaPlayer(Player):
                     if board.is_legal_move(c, r, self.oppSym) : opp_legal_moves += 1 
             value = player_legal_moves - opp_legal_moves
         elif self.eval_type == 2:
-            #print("eval_type = 2") # Testing purposes only
-            # Design own heuristic
             """
             Note: 'stable' pieces are pieces that can't be flipped (corners are stable)
-            Own heuristic first counts the number of 'stable' peices. Then it sums 
-            the number of stable pieces with moves and peices values (add eval of h0 and h1 with stable pieces).
-            NOTE: I THINK WE SHOULD ALSO TRY THIS WITHOUT ADDING PIECES (lots of strat guides say pieces is bad indicator)
+            Our heuristic counts the number of stable pieces in a given board and returns
+            that value.
             """
-            # get number of pieces value (h0)
-            pieces_val = board.count_score(self.symbol) - board.count_score(self.oppSym)
-            # get legal moves value (h1)
-            player_legal_moves, opp_legal_moves = 0, 0
-            for c in range(0, board.get_num_cols()):
-                for r in range(0, board.get_num_rows()):
-                    if board.is_legal_move(c, r, self.symbol) : player_legal_moves += 1 
-                    if board.is_legal_move(c, r, self.oppSym) : opp_legal_moves += 1 
-            moves_val = player_legal_moves - opp_legal_moves
-            # get stable pieces value
             player_stable_pieces, opp_stable_pieces = 0, 0
             for c in range(0, board.get_num_cols()):
                 for r in range(0, board.get_num_rows()):
@@ -204,7 +195,7 @@ class AlphaBetaPlayer(Player):
                         flankable_left, flankable_right = False, False
                         for cols in range(0, c): # check rows less than r
                             if board.get_cell(cols, r) == '.' or board.get_cell(cols, r) == self.oppSym: flankable_left = True
-                        for rows in range(r, board.get_num_rows()): # check rows greater than r
+                        for cols in range(c, board.get_num_cols()): # check rows greater than r
                             if board.get_cell(cols, r) == '.' or board.get_cell(cols, r) == self.oppSym: flankable_right = True
                         if flankable_left and flankable_right: continue # piece is not stable
                         # check if flankable by its negative slope diagonal
@@ -311,11 +302,9 @@ class AlphaBetaPlayer(Player):
                         opp_stable_pieces += 1
                           
             stable_val = player_stable_pieces - opp_stable_pieces
-            #print(stable_val) # TEMP PRINT STATEMENT
-            value = pieces_val + moves_val + stable_val
+            value = stable_val
         return value
 
-    # TODO: Fix error where sometimes an invalid move is appended
     def get_successors(self, board, player_symbol):
         # Write function that takes the current state and generates all successors obtained by legal moves
         # type:(board, player_symbol) -> (list)
