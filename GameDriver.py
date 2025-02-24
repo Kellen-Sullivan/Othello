@@ -87,6 +87,7 @@ class GameDriver:
         print("turn count:", turn_count)
         print("total nodes seen by p1", self.p1.total_nodes_seen)
         print("total nodes seen by p2", self.p2.total_nodes_seen)
+        print("total nodes seen", self.p1.total_nodes_seen + self.p2.total_nodes_seen)
 
 
 def main():

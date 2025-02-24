@@ -86,14 +86,19 @@ class AlphaBetaPlayer(Player):
 
     # Gets all 
     def alphabeta(self, board):
+        print(f"Prune set to: {self.prune}")
+        print(f"Symbol: {self.symbol}")
+
         self.eval_board(board) # TEMP PRINT STATEMENT
         # best_move = (val, col, row)
-        best_move = self.max_val(board, float('-inf'), float('inf'), self.max_depth)
+        val, col, row = self.max_val(board, float('-inf'), float('inf'), self.max_depth)
         #print(best_move[1], best_move[2])
-        return best_move[1], best_move[2]
+        return col, row
     
 
     def max_val(self, board, a, b, d):
+        self.total_nodes_seen += 1
+
         if self.terminal_state(board):
             return self.terminal_value(board), 0, 0
         if d == 0:
@@ -112,18 +117,23 @@ class AlphaBetaPlayer(Player):
                 val = self.terminal_value(s)
             else:
                 val = self.min_val(s, a, b, d)
+
+            if self.prune is "1" and val >= b: 
+                return val, r, c
+
+            
             # Chooses successor if it's score is larger than all previous successors
             if val > a:
                 a = val
                 best_move = (r, c)
 
-        # test print statement
-        if best_move[0] == None or best_move[1] == None: print(best_move[0], best_move[1])
         return a, best_move[0], best_move[1]
         
 
 
     def min_val(self, board, a, b, d):
+        self.total_nodes_seen += 1
+
         if self.terminal_state(board):
             return self.terminal_value(board)
         if d == 0:
@@ -133,8 +143,8 @@ class AlphaBetaPlayer(Player):
 
         successors = self.get_successors(board, self.oppSym)
         if len(successors) == 0:
-            ans, _, _ = self.max_val(board, a, b, d)
-            return ans
+            val, _, _ = self.max_val(board, a, b, d)
+            return val
 
         for s, _, _ in successors: 
             val = None
@@ -144,12 +154,13 @@ class AlphaBetaPlayer(Player):
                 val, _, _ = self.max_val(s, a, b, d)
             
             # Prunes, no other branches in this min node will be checked
-            if val < a: 
+            if self.prune is "1" and val <= a: 
                 return val
-            
+
             # Updates beta value of node if it fines a lower value move
             if val < b: 
                 b = val
+
         return b
 
 
